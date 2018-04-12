@@ -24,12 +24,17 @@ def grayscaleTransformation(image):
 
 def inverseOperator(image):
 	for x in np.nditer(image, op_flags=["readwrite"]): 
-		x[...] = abs(x - 255)
+		x[...] = 255 - x
 	return image
 
 def binaryThresholdInterval(image, p1, p2):
 	for x in np.nditer(image, op_flags=["readwrite"]): 
 		x[...] = 0 if x > p1 and x < p2 else 255
+	return image
+
+def invertedBinaryTresholdOperator(image, p1, p2):
+	for x in np.nditer(image, op_flags=["readwrite"]): 
+		x[...] = 255 if x > p1 and x < p2 else 0
 	return image
 
 def tresholdOperator(image, p1):
@@ -38,10 +43,40 @@ def tresholdOperator(image, p1):
 def invertedTresholdOperator(image, p1):
 	return binaryThresholdInterval(image, 0, p1)
 
+def grayscaleTresholdOperator(image, p1, p2):
+	for x in np.nditer(image, op_flags=["readwrite"]): 
+		x[...] = x if x > p1 and x < p2 else 0
+	return image
+
+def invertedGrayscaleTresholdOperator(image, p1, p2):
+	for x in np.nditer(image, op_flags=["readwrite"]): 
+		x[...] = (255 - x) if x > p1 and x < p2 else 0
+	return image
+
+def stretchOperator(image, p1, p2):
+	for x in np.nditer(image, op_flags=["readwrite"]): 
+		x[...] = ((x - p1)*(255 / (p2 - p1))) if x > p1 and x < p2 else 0
+	return image
+
+def grayLevelReductionOperator(image, p, q):
+	for x in np.nditer(image, op_flags=["readwrite"]):
+		more = False
+		for i, p_ in enumerate(p):
+			if x <= p_:
+				less = True
+				if i == 0:
+					x[...] = 0
+				else: 
+					x[...] = q[i-1]
+				break
+		if more:
+			x[...] = 255
+	return image
+
 def showImage(image):
 	plt.imshow(face)
 	plt.show()
 
 if __name__ == "__main__":
 	face = openImage("face.png")
-	showImage(invertedTresholdOperator(grayscaleTransformation(face), 152))
+	showImage(grayLevelReductionOperator(grayscaleTransformation(face), [50, 100, 150, 200], [64, 128, 192]))
