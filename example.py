@@ -9,55 +9,27 @@ def openImage(path, gray=False):
 def saveImage(image, path):
 	misc.imsave(path, image) # uses the Image module (PIL)
 
-def imageIterator(image):
-	for i in range(len(image)):
-		for j in range(len(image[i])):
-			try:
-				max_k = len(image[i][j])
-				for k in range(max_k):
-					yield((i, j, k), image[i][j][k])
-			except:
-				yield ((i, j), image[i][j])
-
 def grayscaleTransformation(image):
-	try:
-		len(image[0][0])
-		iterator = imageIterator(image)
-		while iterator:
-			try:
-				pos, R = next(iterator)
-				pos, G = next(iterator)
-				pos, B = next(iterator)
-				pos = pos[:2]
-				value = 0.21*R + 0.72*G + 0.07*B
-				image[pos] = value
-			except StopIteration:
-				break
-		return image
-	except:
-		return image
+	it = np.nditer(image, flags=['multi_index'])
+	i = 0
+	RGB = [0, 0, 0]
+	while not it.finished:
+		RGB[i] = it[0]
+		i = i + 1
+		if i > 2:
+			image[it.multi_index[:2]] = 0.21*RGB[0] + 0.72*RGB[1] + 0.07*RGB[2]
+			i = 0
+		it.iternext()
+	return image
 
 def inverseOperator(image):
-	iterator = imageIterator(image)
-	while iterator:
-		try:
-			pos, value = next(iterator)
-			image[pos] = abs(value - 255)
-		except StopIteration:
-			break
+	for x in np.nditer(image, op_flags=["readwrite"]): 
+		x[...] = abs(x - 255)
 	return image
 
 def binaryThresholdInterval(image, p1, p2):
-	iterator = imageIterator(image)
-	while iterator:
-		try:
-			pos, value = next(iterator)
-			if value > p1 and value < p2:
-				image[pos] = 255
-			else:
-				image[pos] = 0
-		except StopIteration:
-			break
+	for x in np.nditer(image, op_flags=["readwrite"]): 
+		x[...] = 0 if x > p1 and x < p2 else 255
 	return image
 
 def tresholdOperator(image, p1):
@@ -72,3 +44,4 @@ def showImage(image):
 
 if __name__ == "__main__":
 	face = openImage("face.png")
+	showImage(invertedTresholdOperator(grayscaleTransformation(face), 152))
