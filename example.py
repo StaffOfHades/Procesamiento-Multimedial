@@ -73,10 +73,16 @@ def grayLevelReductionOperator(image, p, q):
 			x[...] = 255
 	return image
 
+def grayLevelReductionOperatorByLevel(image, div):
+	p = [(255 / div) * i for i in range(div)]
+	div = div - 1
+	q = [(255 / div) * i for i in range(div)]
+	return grayLevelReductionOperator(image, p, q)
+
 def showImage(image):
 	plt.imshow(face)
 	plt.show()
 
 if __name__ == "__main__":
 	face = openImage("face.png")
-	showImage(grayLevelReductionOperator(grayscaleTransformation(face), [50, 100, 150, 200], [64, 128, 192]))
+	showImage(grayLevelReductionOperatorByLevel(grayscaleTransformation(face), 16))
