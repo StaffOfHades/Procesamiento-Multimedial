@@ -2,6 +2,7 @@ import numpy as np
 import time
 from scipy import misc
 import matplotlib.pyplot as plt
+import math
 
 def openImage(path, gray=False):
 	return misc.imread(path, gray)
@@ -10,7 +11,7 @@ def saveImage(image, path):
 	misc.imsave(path, image) # uses the Image module (PIL)
 
 def grayscaleTransformation(image):
-	it = np.nditer(image, flags=['multi_index'])
+	it = np.nditer(image, flags=["multi_index"])
 	i = 0
 	RGB = [0, 0, 0]
 	while not it.finished:
@@ -79,10 +80,37 @@ def grayLevelReductionOperatorByLevel(image, div):
 	q = [(255 / div) * i for i in range(div)]
 	return grayLevelReductionOperator(image, p, q)
 
+
+def imageAddition(image1, image2, scalingFactor = 2):
+	it1 = np.nditer(image1, flags=["multi_index"])
+	it2 = np.nditer(image2, flags=["multi_index"])
+	while not it1.finished and not it2.finished:
+		image1[it1.multi_index] = math.ceil( (it1[0] + it2[0]) / scalingFactor)
+		it1.iternext()
+		it2.iternext()
+	return image1
+
+def imageSubtraction(image1, image2):
+	it1 = np.nditer(image1, flags=["multi_index"])
+	it2 = np.nditer(image2, flags=["multi_index"])
+	while not it1.finished and not it2.finished:
+		image1[it1.multi_index] = it1[0] - it2[0]
+		it1.iternext()
+		it2.iternext()
+
+	max = np.max(image1)
+	min = np.min(image1)
+
+	for x in np.nditer(image1, op_flags=["readwrite"]): 
+		x[...] = (x - min) * (255 / (abs(min) + abs(max))) 
+	return image1
+
+
 def showImage(image):
-	plt.imshow(face)
+	plt.imshow(image)
 	plt.show()
 
 if __name__ == "__main__":
-	face = openImage("face.png")
-	showImage(grayLevelReductionOperatorByLevel(grayscaleTransformation(face), 16))
+	image1 = openImage("bg1.jpg")
+	image2 = openImage("bg2.jpg")
+	showImage(grayLevelReductionOperatorByLevel(grayscaleTransformation(image1), 3))
