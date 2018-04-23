@@ -6,6 +6,7 @@ import java.io.*;
 import javax.imageio.*;
 import javax.swing.*;
 
+import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,15 +23,13 @@ class Pixel {
          "C:\\Users\\Mauricio\\Documents\\UDLAP\\Primavera 2018\\Procesamiento Multimedial\\";
    
    Pixel() {
-      BufferedImage image1 = loadImage("bg1.jpg");
-      BufferedImage image2 = loadImage("bg2.jpg");
-      int[] data1 = getData(image1);
-      int[] data2 = getData(image2);
-      //data1 = grayscaleTransformation(data1);
-      //int[] data2 = grayLevelReductionOperatorByLevel(data1, 16);
-      int[] data = imageSubtraction(data1, data2);
-      //data = inverseOperator(data);
-      showImage(setData(image1, data));
+      BufferedImage image = loadImage("face.png");
+      int[] data = getData(image);
+      int[] avg = grayscaleTransformation(data, GrayscaleType.Average);
+      saveImage(setData(image, avg), "face_average_grayscale.png", "png");
+      int[] lum = grayscaleTransformation(data, GrayscaleType.Luminosity);
+      saveImage(setData(image, lum), "face_luminosity_grayscale.png", "png");
+      showImage(setData(image, imageSubtraction(avg, lum)));
    }
 
    private BufferedImage loadImage(String name) {
@@ -114,14 +113,18 @@ class Pixel {
          )
          .toArray();
    }
-   
+
    private int[] grayscaleTransformation(int[] data) {
+      return grayscaleTransformation(data, GrayscaleType.Luminosity);
+   }
+   
+   private int[] grayscaleTransformation(int[] data, GrayscaleType type) {
       return Arrays
          .stream(data)
          .parallel()
          .map(
             pixel -> {
-               return new Pix(pixel).toGrayInt();
+               return new Pix(pixel).toGrayInt(type);
             }
          )
          .toArray();
@@ -335,6 +338,22 @@ class Pixel {
          .toArray();
    }
 
+   private int[] imageMultiplcation(int[] data1, int[] data2) {
+      BinaryOperator<Pix> operator = (pix1, pix2) -> {
+         Pix pix = new Pix();
+         pix.red = Math.toIntExact(Math.round(pix1.red + (pix1.red * (pix2.red / 10.0))));
+         pix.green = Math.toIntExact(Math.round(pix1.green + (pix1.green * (pix2.green / 10.0))));
+         pix.blue = Math.toIntExact(Math.round(pix1.blue + (pix1.blue * (pix2.blue / 10.0))));
+         pix.red = pix.red > 255 ? 255 : pix.red;
+         pix.green = pix.green > 255 ? 255 : pix.green;
+         pix.blue = pix.blue > 255 ? 255 : pix.blue;
+         return pix;
+      };
+
+      return process(data1, data2, operator);
+   }
+
+
    static public void main(String args[]) throws Exception {
       Pixel obj = new Pixel();
    }
@@ -361,14 +380,29 @@ class Pix {
    }
 
    int toGrayInt() {
-      int avg = Math.toIntExact(
-                  Math.round(
-                     0.21 * red + 0.72 * green + 0.07 * blue
-                  )
-               );
+      return toGrayInt(GrayscaleType.Luminosity);
+   }
+
+   int toGrayInt(GrayscaleType type) {
+      final double value;
+      switch (type) {
+         case Average:
+            value = (red + green + blue) / 3.0;
+            break;
+         case Luminosity:
+         default:
+            value = 0.21 * red + 0.72 * green + 0.07 * blue;
+      }
+
+      int avg = Math.toIntExact(Math.round(value));
       return (alpha << 24) | (avg << 16) | (avg << 8) | avg;  
    }
 
+}
+
+enum GrayscaleType {
+   Luminosity,
+   Average;
 }
 
 class Tuple<E, F> {
