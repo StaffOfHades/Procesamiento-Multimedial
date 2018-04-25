@@ -490,37 +490,6 @@ class Pixel {
       return convoluted;
    }
 
-   private double[][] generateMask(MaskType type, int size) {
-      double[][] mask;
-      switch(type) {
-         case LowPass:
-         default:
-            return generateLowPassMask(size);
-      }
-   }
-
-   private double[][] generateLowPassMask(int size) {
-      size = size % 2 == 1 ? size : size + 1;
-
-      double[][] mask = new double[size][size];
-      double scalingFactor = 0;
-      final int half = size / 2;
-      for(int i = 0; i < size; i++) {
-         int offset = half - (i % (half + 1));
-         for(int j = offset; j < (size - offset); j++) {
-            scalingFactor++;
-         }
-      }
-
-      for(int i = 0; i < size; i++) {
-         int offset = half - (i % (half + 1));
-         for(int j = offset; j < (size - offset); j++) {
-            mask[i][j] = 1 / scalingFactor;
-         }
-      }
-      return mask;
-   }
-
    static public void main(String args[]) throws Exception {
       Pixel obj = new Pixel();
    }
@@ -570,10 +539,6 @@ class Pix {
 enum GrayscaleType {
    Luminosity,
    Average;
-}
-
-enum MaskType {
-   LowPass
 }
 
 class Tuple<E, F> {
