@@ -23,13 +23,29 @@ class Pixel {
          "C:\\Users\\Mauricio\\Documents\\UDLAP\\Primavera 2018\\Procesamiento Multimedial\\";
    
    Pixel() {
-      BufferedImage image = loadImage("face.png");
-      int[] data = getData(image);
-      int[] avg = grayscaleTransformation(data, GrayscaleType.Average);
-      saveImage(setData(image, avg), "face_average_grayscale.png", "png");
-      int[] lum = grayscaleTransformation(data, GrayscaleType.Luminosity);
-      saveImage(setData(image, lum), "face_luminosity_grayscale.png", "png");
-      showImage(setData(image, imageSubtraction(avg, lum)));
+      double[][] mask = {
+         {0, 0, 1, 0, 0},
+         {0, 1, 2, 1, 0},
+         {1, 2, 4, 2, 1},
+         {0, 1, 2, 2, 0},
+         {0, 0, 1, 0, 0}
+      };
+
+      BufferedImage image1 = loadImage("bg1.jpg");
+      BufferedImage image2 = loadImage("bg2.jpg");
+      int[] _1 = getData(image1);
+      int[] _2 = getData(image2);
+      int[] origin = imageAddition(_2, _1);
+      setData(image1, origin);
+      showImage(image1);
+
+      BufferedImage result = imageConvolution(image1, mask, 0x14);
+      int[] lowPass = getData(result);
+      
+      int[] highPass = imageSubtraction(origin, lowPass);
+      int[] crisp = imageAddition(origin, highPass);
+      int[] gray = grayscaleTransformation(crisp);
+      showImage(setData(image1, crisp));
    }
 
    private BufferedImage loadImage(String name) {
@@ -114,6 +130,17 @@ class Pixel {
          .toArray();
    }
 
+   private BufferedImage grayscaleTransformation(BufferedImage image) {
+     return grayscaleTransformation(image, GrayscaleType.Luminosity);
+   }
+
+   private BufferedImage grayscaleTransformation(BufferedImage image, GrayscaleType type) {
+      int[] data = getData(image);
+      data = grayscaleTransformation(data, type);
+      setData(image, data);
+      return image;
+   }
+
    private int[] grayscaleTransformation(int[] data) {
       return grayscaleTransformation(data, GrayscaleType.Luminosity);
    }
@@ -130,6 +157,13 @@ class Pixel {
          .toArray();
    }
 
+   private BufferedImage inverseOperator(BufferedImage image) {
+      int[] data = getData(image);
+      data = inverseOperator(data);
+      setData(image, data);
+      return image;
+   }
+
    private int[] inverseOperator(int[] data) {
       UnaryOperator<Pix> operator = pix -> {
          pix.red = 0xff - pix.red;
@@ -138,6 +172,13 @@ class Pixel {
          return pix;
       };
       return process(data, operator);
+   }
+
+   private BufferedImage binaryThresholdInterval(BufferedImage image, int p1, int p2) {
+      int[] data = getData(image);
+      data = binaryThresholdInterval(data, p1, p2);
+      setData(image, data);
+      return image;
    }
 
    private int[] binaryThresholdInterval(int[] data, int p1, int p2) {
@@ -150,6 +191,13 @@ class Pixel {
       return process(data, operator);
    }
 
+   private BufferedImage invertedBinaryTresholdOperator(BufferedImage image, int p1, int p2) {
+      int[] data = getData(image);
+      data = invertedBinaryTresholdOperator(data, p1, p2);
+      setData(image, data);
+      return image;
+   }
+
    private int[] invertedBinaryTresholdOperator(int[] data, int p1, int p2) {
       UnaryOperator<Pix> operator = pix -> {
          pix.red = (pix.red >= p1 && pix.red <= p2) ? 0 : 0xff;
@@ -160,12 +208,33 @@ class Pixel {
       return process(data, operator);
    }
 
-   private int[] tresholdOperator(int[] data, int p1) {
-      return binaryThresholdInterval(data, p1, 0xff);
+   private BufferedImage tresholdOperator(BufferedImage image, int p) {
+      int[] data = getData(image);
+      data = tresholdOperator(data, p);
+      setData(image, data);
+      return image;
    }
 
-   private int[] invertedTresholdOperator(int[] data, int p1) {
-      return binaryThresholdInterval(data, 0, p1);
+   private int[] tresholdOperator(int[] data, int p) {
+      return binaryThresholdInterval(data, p, 0xff);
+   }
+
+   private BufferedImage invertedTresholdOperator(BufferedImage image, int p) {
+      int[] data = getData(image);
+      data = invertedTresholdOperator(data, p);
+      setData(image, data);
+      return image;
+   }
+
+   private int[] invertedTresholdOperator(int[] data, int p) {
+      return binaryThresholdInterval(data, 0, p);
+   }
+
+   private BufferedImage grayscaleTresholdOperator(BufferedImage image, int p1, int p2) {
+      int[] data = getData(image);
+      data = grayscaleTresholdOperator(data, p1, p2);
+      setData(image, data);
+      return image;
    }
 
    private int[] grayscaleTresholdOperator(int[] data, int p1, int p2) {
@@ -178,6 +247,13 @@ class Pixel {
       return process(data, operator);
    }
 
+   private BufferedImage inverseGrayscaleTresholdOperator(BufferedImage image, int p1, int p2) {
+      int[] data = getData(image);
+      data = inverseGrayscaleTresholdOperator(data, p1, p2);
+      setData(image, data);
+      return image;
+   }
+
    private int[] inverseGrayscaleTresholdOperator(int[] data, int p1, int p2) {
       UnaryOperator<Pix> operator = pix -> {
          pix.red = (pix.red >= p1 && pix.red <= p2) ? 0xff - pix.red : 0;
@@ -188,10 +264,16 @@ class Pixel {
       return process(data, operator);
    }
 
+   private BufferedImage stretchOperator(BufferedImage image, int p1, int p2) {
+      int[] data = getData(image);
+      data = stretchOperator(data, p1, p2);
+      setData(image, data);
+      return image;
+   }
 
    private int[] stretchOperator(int[] data, int p1, int p2) {
       UnaryOperator<Pix> operator = pix -> {
-         //((x - p1)*(255 / (p2 - p1))) if x > p1 and x < p2 else 0
+         //((x - p1)*(0xff / (p2 - p1))) if x > p1 and x < p2 else 0
 
          pix.red = (pix.red > p1 && pix.red < p2) ? (pix.red - p1) * (0xff / (p2 - p1)) : 0;
          pix.green = (pix.green > p1 && pix.green < p2) ? (pix.green - p1) * (0xff / (p2 - p1)) : 0;
@@ -199,6 +281,13 @@ class Pixel {
          return pix;
       };
       return process(data, operator);
+   }
+
+   private BufferedImage grayLevelReductionOperator(BufferedImage image, int[] p, int[] q) {
+      int[] data = getData(image);
+      data = grayLevelReductionOperator(data, p, q);
+      setData(image, data);
+      return image;
    }
 
    private int[] grayLevelReductionOperator(int[] data, int[] p, int[] q) {
@@ -232,6 +321,13 @@ class Pixel {
          return pix;
       };
       return process(data, operator);
+   }
+
+   private BufferedImage grayLevelReductionOperatorByLevel(BufferedImage image, int levels) {
+      int[] data = getData(image);
+      data = grayLevelReductionOperatorByLevel(data, levels);
+      setData(image, data);
+      return image;
    }
 
    private int[] grayLevelReductionOperatorByLevel(int[] data, int levels) {
@@ -344,15 +440,86 @@ class Pixel {
          pix.red = Math.toIntExact(Math.round(pix1.red + (pix1.red * (pix2.red / 10.0))));
          pix.green = Math.toIntExact(Math.round(pix1.green + (pix1.green * (pix2.green / 10.0))));
          pix.blue = Math.toIntExact(Math.round(pix1.blue + (pix1.blue * (pix2.blue / 10.0))));
-         pix.red = pix.red > 255 ? 255 : pix.red;
-         pix.green = pix.green > 255 ? 255 : pix.green;
-         pix.blue = pix.blue > 255 ? 255 : pix.blue;
+         pix.red = pix.red > 0xff ? 0xff : pix.red;
+         pix.green = pix.green > 0xff ? 0xff : pix.green;
+         pix.blue = pix.blue > 0xff ? 0xff : pix.blue;
          return pix;
       };
 
       return process(data1, data2, operator);
    }
 
+   private BufferedImage imageConvolution(BufferedImage image, double[][] mask) {
+      return imageConvolution(image, mask, 1);
+   }
+
+   private BufferedImage imageConvolution(BufferedImage image, double[][] mask, double scalingFactor) {
+      int width = image.getWidth();
+      int height = image.getHeight();
+      BufferedImage convoluted = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      for(int x = 0; x < width; x++) {
+         for(int y = 0; y < height; y++) {
+            Pix output = new Pix();
+            Pix input = new Pix( image.getRGB(x, y) );
+            output.alpha = input.alpha;
+            double red, green, blue;
+            red = green = blue = 0;
+            //System.out.println("Original pix " + input.red + ", " + input.green + ", " + input.blue );
+            for (int xi = 0; xi < mask.length; xi++) {
+               for(int yi = 0; yi < mask[xi].length; yi++) {
+                  int xj = (x - mask.length / 2 + xi + width) % width;
+                  int yj = (y - mask[xi].length / 2 + yi + height) % height;
+
+                  Pix pix = new Pix(image.getRGB(xj, yj));
+                  red += pix.red * mask[xi][yi] / scalingFactor;
+                  green += pix.green * mask[xi][yi] / scalingFactor;
+                  blue += pix.blue * mask[xi][yi] / scalingFactor;
+                  //System.out.println(red + ", " + green + ", " + blue );
+               }
+            }
+            red = red > 0xff ? 0xff : red < 0 ? 0 : red;
+            green = green > 0xff ? 0xff : green < 0 ? 0 : green;
+            blue = blue > 0xff ? 0xff : blue < 0 ? 0 : blue;
+            output.red = Math.toIntExact(Math.round(red));
+            output.green = Math.toIntExact(Math.round(green));
+            output.blue = Math.toIntExact(Math.round(blue));
+            //System.out.println("Final pix " + output.red + ", " + output.green + ", " + output.blue );
+            convoluted.setRGB(x, y, output.toInt());
+         }
+      }
+      return convoluted;
+   }
+
+   private double[][] generateMask(MaskType type, int size) {
+      double[][] mask;
+      switch(type) {
+         case LowPass:
+         default:
+            return generateLowPassMask(size);
+      }
+   }
+
+   private double[][] generateLowPassMask(int size) {
+      size = size % 2 == 1 ? size : size + 1;
+
+      double[][] mask = new double[size][size];
+      double scalingFactor = 0;
+      final int half = size / 2;
+      for(int i = 0; i < size; i++) {
+         int offset = half - (i % (half + 1));
+         for(int j = offset; j < (size - offset); j++) {
+            scalingFactor++;
+         }
+      }
+
+      for(int i = 0; i < size; i++) {
+         int offset = half - (i % (half + 1));
+         for(int j = offset; j < (size - offset); j++) {
+            mask[i][j] = 1 / scalingFactor;
+         }
+      }
+      return mask;
+   }
 
    static public void main(String args[]) throws Exception {
       Pixel obj = new Pixel();
@@ -403,6 +570,10 @@ class Pix {
 enum GrayscaleType {
    Luminosity,
    Average;
+}
+
+enum MaskType {
+   LowPass
 }
 
 class Tuple<E, F> {
