@@ -16,36 +16,43 @@ import java.util.stream.Collectors;
 
 import java.lang.Math;
 
-
-class Pixel {
+class Deprecated {
 
    private static final String PATH = 
          "C:\\Users\\Mauricio\\Documents\\UDLAP\\Primavera 2018\\Procesamiento Multimedial\\";
    
-   Pixel() {
+   Deprecated() {
       double[][] mask = {
-         {0, 0, 1, 0, 0},
-         {0, 1, 2, 1, 0},
-         {1, 2, 4, 2, 1},
-         {0, 1, 2, 2, 0},
-         {0, 0, 1, 0, 0}
+         {-1, -1, -1, -1, -1,},
+         {-1,  2,  2,  2, -1,},
+         {-1,  2,  8,  2, -1,},
+         {-1,  2,  2,  2, -1,},
+         {-1, -1, -1, -1, -1,}
       };
 
       BufferedImage image1 = loadImage("bg1.jpg");
       BufferedImage image2 = loadImage("bg2.jpg");
-      int[] _1 = getData(image1);
-      int[] _2 = getData(image2);
-      int[] origin = imageAddition(_2, _1);
-      setData(image1, origin);
       showImage(image1);
+      showImage(image2);
+      int[] _1_ = getData(image1);
+      int[] _2_ = getData(image2);
+      int[] _1 = imageAddition(_1_, _2_);
+      int[] _2 = imageAdditionW(_1_, _2_);
+      setData(image1, _1);
+      setData(image2, _2);
+      showImage(image1);
+      showImage(image2);
 
-      BufferedImage result = imageConvolution(image1, mask, 0x14);
+      /*
+      BufferedImage result = imageConvolution(image1, mask, 8.0);
       int[] lowPass = getData(result);
+      int[] gray1 = grayscaleTransformation(lowPass);
       
       int[] highPass = imageSubtraction(origin, lowPass);
-      int[] crisp = imageAddition(origin, highPass);
+      int[] crisp = imageAddition(origin, lowPass);
       int[] gray = grayscaleTransformation(crisp);
       showImage(setData(image1, crisp));
+      */
    }
 
    private BufferedImage loadImage(String name) {
@@ -362,6 +369,85 @@ class Pixel {
       return process(data1, data2, operator);
    }
 
+   private int[] imageAdditionW(int[] data1, int[] data2) {
+      List<Tuple<Integer, Integer>> data = new ArrayList<>();
+      for(int i = 0; i < data1.length && i < data2.length; i++)
+         data.add(new Tuple<Integer, Integer>(data1[i], data2[i]));
+      
+      List<Pix> additionData = data
+         .parallelStream()
+         .map(
+            tuple -> {
+               Pix pix1 = new Pix(tuple.first);
+               Pix pix2 = new Pix(tuple.second);
+               Pix pix = new Pix();
+               pix.red = pix1.red + pix2.red;
+               pix.green = pix1.green + pix2.green;
+               pix.blue = pix1.blue + pix2.blue;   
+               return pix;
+            }
+         )
+         .collect(Collectors.toList());
+
+      int[] max = new int[3];
+      int[] min = new int[3];
+
+      max[0] = additionData
+         .stream()
+         .mapToInt( pix -> pix.red)
+         .max()
+         .getAsInt();
+      max[1] = additionData
+         .stream()
+         .mapToInt( pix -> pix.green)
+         .max()
+         .getAsInt();
+      max[2] = additionData
+         .stream()
+         .mapToInt( pix -> pix.blue)
+         .max()
+         .getAsInt();
+      min[0] = additionData
+         .stream()
+         .mapToInt( pix -> pix.red)
+         .min()
+         .getAsInt();
+      min[1] = additionData
+         .stream()
+         .mapToInt( pix -> pix.green)
+         .min()
+         .getAsInt();
+      min[2] = additionData
+         .stream()
+         .mapToInt( pix -> pix.blue)
+         .min()
+         .getAsInt();
+
+      double[] scalar = new double[3];
+      scalar[0] = (255.0 / (Math.abs(min[0]) + Math.abs(max[0])));
+      scalar[1] = (255.0 / (Math.abs(min[1]) + Math.abs(max[1])));
+      scalar[2] = (255.0 / (Math.abs(min[2]) + Math.abs(max[2])));
+
+
+      int offset = 100;
+      for(int i = 0; i < 20; i++)
+         System.out.println(additionData.get(i + offset).toInt());
+
+      int[] results = additionData
+         .parallelStream()
+         .mapToInt( pix ->
+            {
+               pix.red = Math.toIntExact(Math.round((pix.red - min[0]) * scalar[0]));
+               pix.green = Math.toIntExact(Math.round((pix.green - min[1]) * scalar[1]));
+               pix.blue = Math.toIntExact(Math.round((pix.blue - min[2]) * scalar[2]));
+               return pix.toInt();
+            }
+         )
+         .toArray();
+
+      return results;
+   }
+
    private int[] imageSubtraction(int[] data1, int[] data2) {
       List<Tuple<Integer, Integer>> data = new ArrayList<>();
       for(int i = 0; i < data1.length && i < data2.length; i++)
@@ -450,10 +536,18 @@ class Pixel {
    }
 
    private BufferedImage imageConvolution(BufferedImage image, double[][] mask) {
-      return imageConvolution(image, mask, 1);
+      return imageConvolution(image, mask, 1, 0);
    }
 
    private BufferedImage imageConvolution(BufferedImage image, double[][] mask, double scalingFactor) {
+      return imageConvolution(image, mask, scalingFactor, 0);
+   }
+
+    private BufferedImage imageConvolution(BufferedImage image, double[][] mask, int bias) {
+      return imageConvolution(image, mask, 1, bias);
+   }
+
+   private BufferedImage imageConvolution(BufferedImage image, double[][] mask, double scalingFactor, int bias) {
       int width = image.getWidth();
       int height = image.getHeight();
       BufferedImage convoluted = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -477,9 +571,9 @@ class Pixel {
                   //System.out.println(red + ", " + green + ", " + blue );
                }
             }
-            red = red > 0xff ? 0xff : red < 0 ? 0 : red;
-            green = green > 0xff ? 0xff : green < 0 ? 0 : green;
-            blue = blue > 0xff ? 0xff : blue < 0 ? 0 : blue;
+            red = Math.min(Math.max(red + bias, 0), 255);
+            green = Math.min(Math.max(green + bias, 0), 255);
+            blue = Math.min(Math.max(blue + bias, 0), 255);
             output.red = Math.toIntExact(Math.round(red));
             output.green = Math.toIntExact(Math.round(green));
             output.blue = Math.toIntExact(Math.round(blue));
@@ -491,7 +585,7 @@ class Pixel {
    }
 
    static public void main(String args[]) throws Exception {
-      Pixel obj = new Pixel();
+      Deprecated obj = new Deprecated();
    }
 }
 
