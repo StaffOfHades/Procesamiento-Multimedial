@@ -144,4 +144,78 @@ class MaskType {
 		};
 	}
 
+	static double[][] sobel(SobelType type) {
+		switch(type) {
+			case horizontal:
+				return new double[][]{
+					{-1,-2,-1},
+					{ 0, 0, 0},
+					{ 1, 2, 1}
+				};
+			case vertical:
+				return new double[][]{
+					{-1, 0, 1},
+					{-2, 0, 2},
+					{-1, 0, 1}
+				};
+			case diagonalRight:
+				return new double[][]{
+					{-2,-1, 0},
+					{-1, 0, 1},
+					{ 0, 1, 2}
+				};
+			case diagonalLeft:
+			default:
+				return new double[][]{
+					{ 0, 1, 2},
+					{-1, 0, 1},
+					{-2,-1, 0}
+				};
+		}
+	}
+
+	static double[][] sobel(PrewitType type) {
+		switch(type) {
+			case horizontal:
+				return new double[][]{
+					{-1, -1, -1},
+					{ 0,  0,  0},
+					{ 1,  1,  1}
+				};
+			case vertical:
+				return new double[][]{
+					{-1, 0, 1},
+					{-1, 0, 1},
+					{-1, 0, 1}
+				};
+			case diagonalRight:
+				return new double[][]{
+					{-1,-1, 0},
+					{-1, 0, 1},
+					{ 0, 1, 1}
+				};
+			case diagonalLeft:
+			default:
+				return new double[][]{
+					{ 0, 1, 1},
+					{-1, 0, 1},
+					{-1,-1, 0}
+				};
+		}
+	}
+
+}
+
+enum SobelType {
+	horizontal,
+	vertical,
+	diagonalRight,
+	diagonalLeft
+}
+
+enum PrewitType {
+	horizontal,
+	vertical,
+	diagonalRight,
+	diagonalLeft
 }

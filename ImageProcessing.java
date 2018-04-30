@@ -23,17 +23,28 @@ class ImageProcessing {
    private BufferedImage image;
    private PixelProcessing data;
 
-   ImageProcessing(String name) {
-      loadImage(name);
+   ImageProcessing(File file) {
+      loadImage(file);
    }
 
+   // Inicia una nueva clase dado el nombre de una imagen local con tipo
+   ImageProcessing(String name, String format) {
+      loadImage(name, format);
+   }
+
+   // Inicia una nueva clase dado una copia
    ImageProcessing(BufferedImage image) {
       this.image = image;
    }
    
-   void loadImage(String name) {
+   // Carga una imagen de disco local dado el nombre y formato
+   void loadImage(String name, String format) {
+      loadImage(new File(PATH + name + "." + format));
+   }
+
+   // Carga una imagen de disco
+   void loadImage(File file) {
       try {
-         File file = new File(PATH + name);
          image = ImageIO.read(file);
          data = new PixelProcessing(image);
       } catch ( Exception e ) {
@@ -41,15 +52,17 @@ class ImageProcessing {
       }
    }
 
+   // Guarda una imagen a disco
    void saveImage(String name, String format) {
       try {
-         File file = new File(PATH + name);
+         File file = new File(PATH + name + "." + format);
          ImageIO.write(image, format, file);
       } catch ( Exception e ) {
          e.printStackTrace();
       }
    }
 
+   // Muestra la imagen actual
    void showImage() {
       SwingUtilities.invokeLater(new Runnable()
          {
@@ -169,40 +182,50 @@ class ImageProcessing {
       );
    }
 
+   // Regresa una imagen en escala de gris con el metodo de luminosidad
    ImageProcessing grayscaleTransformation() {
       return grayscaleTransformation(GrayscaleType.Luminosity);
    }
 
+   // Regresa una imagen en escala de gris con el metodo dado
    ImageProcessing grayscaleTransformation(GrayscaleType type) {
       return copy(
          data.grayscaleTransformation(type)
       );
    }
 
+   // Regresa una imagen invertida en colores
    ImageProcessing inverseOperator() {
       return copy(
          data.inverseOperator()
       );
    }
 
+   // Regresa una imagen con los valores fuera de p1 y p2 suprimidos
    ImageProcessing binaryThresholdInterval(int p1, int p2) {
       return copy(
          data.binaryThresholdInterval(p1, p2)
       );
    }
 
+   // Regresa una imagen con los valores dentro de p1 y p2 invertidos,
+   // y fuera de ella suprimidos
    ImageProcessing invertedBinaryTresholdOperator(int p1, int p2) {
       return copy(
          data.invertedBinaryTresholdOperator(p1, p2)
       );
    }
 
+   // Regresa una imagen donde los valores mayores a p son blancos
+   // y los valores menores son negros
    ImageProcessing tresholdOperator(int p) {
       return copy(
          data.tresholdOperator(p)
       );
    }
 
+   // Regresa una imagen donde los valores mayores a p son negros
+   // y los valores menores son blanvos
    ImageProcessing invertedTresholdOperator(int p) {
       return copy(
          data.invertedTresholdOperator(p)
@@ -221,32 +244,44 @@ class ImageProcessing {
       );
    }
 
+   // Regresa una imagen donde se extiende el rango de valores
+   // de 0 a 255
    ImageProcessing stretchOperator(int p1, int p2) {
       return copy(
          data.stretchOperator(p1, p2)
       );
    }
 
+   // Limita el numero de colores a q + 2, de 0 a 255, dado 
+   // las posiciones p
    ImageProcessing grayLevelReductionOperator(int[] p, int[] q) {
       return copy(
          data.grayLevelReductionOperator(p, q)
       );
    }
 
+   // Limita el numero de colores a n numero de niveles si
+   // la imagen esta en escala de gris,
+   // o n * 3 si esta en colores.
    ImageProcessing grayLevelReductionOperatorByLevel(int levels) {
       return copy(
          data.grayLevelReductionOperatorByLevel(levels)
       );
    }
 
+   // Suma a esta imagen otra imagen
    ImageProcessing imageAddition(ImageProcessing other) {
       return imageAddition(other, false);
    }
 
+   // Suma a esta imagen otra imagen
+   // (Se puede utilizar averaging o rescaling)
    ImageProcessing imageAddition(ImageProcessing other, boolean withRescaling) {
          return withRescaling ? imageAdditionRescaling(other) : imageAdditionAverage(other, 2);
    }
 
+   // Suma a esta imagen otra imagen donde el valor de un pixel es la suma de ambos
+   // entre el factor escala (por defecto 2 si el argumento se omite)
    ImageProcessing imageAdditionAverage(ImageProcessing other, double scalingFactor) {
       BinaryOperator<Pix> operator = (pix1, pix2) -> {
          Pix pix = new Pix();
@@ -260,6 +295,8 @@ class ImageProcessing {
       );
    }
 
+   // Suma a esta imagen otra imagen donde se suman los valores
+   // y despues se redistribuyen de 0 a 255
    ImageProcessing imageAdditionRescaling(ImageProcessing other) {
       BinaryOperator<Pix> operator = (pix1, pix2) -> {
          Pix pix = new Pix();
@@ -294,6 +331,8 @@ class ImageProcessing {
       );
    }
 
+   // Resta a esta imagen otra imagen donde el valor de un pixel es la resta de esta menos
+   // la otra imagen y se aplica un rescalamiento
    ImageProcessing imageSubtraction(ImageProcessing other) {
        BinaryOperator<Pix> operator = (pix1, pix2) -> {
          Pix pix = new Pix();
@@ -328,6 +367,7 @@ class ImageProcessing {
       );
    }
 
+   // Se multiplica a esta imagen otra
    ImageProcessing imageMultiplcation(ImageProcessing other) {
       BinaryOperator<Pix> operator = (pix1, pix2) -> {
          Pix pix = new Pix();
@@ -345,18 +385,30 @@ class ImageProcessing {
       );
    }
 
+   // Se aplica esta imagen una mascara por convolucion
    ImageProcessing imageConvolution(double[][] mask) {
       return imageConvolution(mask, 1, 0);
    }
 
+   // Se aplica esta imagen una mascara por convolucion,
+   // donde la mascara no viene ya con una suma total igual a 1
+   // y es necesario escalar el resultado por ende.
    ImageProcessing imageConvolution(double[][] mask, double scalingFactor) {
       return imageConvolution(mask, scalingFactor, 0);
    }
 
+   // Se aplica esta imagen una mascara por convolucion,
+   // y adicionalmente, se aplica un bias que altera todos los pixeles
+   // con la suma de ese valor.
    ImageProcessing imageConvolution(double[][] mask, int bias) {
       return imageConvolution(mask, 1.0, bias);
    }
 
+   // Se aplica esta imagen una mascara por convolucion,
+   // donde la mascara no viene ya con una suma total igual a 1
+   // y es necesario escalar el resultado por ende.
+   // Adicionalmente, se aplica un bias que altera todos los pixeles
+   // con la suma de ese valor.
    ImageProcessing imageConvolution(double[][] mask, double scalingFactor, int bias) {
       BufferedImage convoluted = copy(getPixels()).getImage();
       int width = convoluted.getWidth();
