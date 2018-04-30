@@ -67,8 +67,8 @@ class ImageProcessing {
       SwingUtilities.invokeLater(new Runnable()
          {
             public void run() {
-               JFrame editorFrame = new JFrame("Image Demo");
-               editorFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
+               JFrame editorFrame = new JFrame("Image");
+               //editorFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
                ImageIcon imageIcon = new ImageIcon(image);
                JLabel jLabel = new JLabel();
                jLabel.setIcon(imageIcon);
@@ -99,6 +99,10 @@ class ImageProcessing {
 
    PixelProcessing getPixels() {
       return data;
+   }
+
+   ImageProcessing copy() {
+      return copy(data);
    }
 
    private ImageProcessing copy(PixelProcessing data) {
@@ -368,7 +372,7 @@ class ImageProcessing {
    }
 
    // Se multiplica a esta imagen otra
-   ImageProcessing imageMultiplcation(ImageProcessing other) {
+   ImageProcessing imageMultiplication(ImageProcessing other) {
       BinaryOperator<Pix> operator = (pix1, pix2) -> {
          Pix pix = new Pix();
          pix.red = Math.toIntExact(Math.round(pix1.red + (pix1.red * (pix2.red / 10.0))));

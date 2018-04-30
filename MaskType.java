@@ -174,7 +174,7 @@ class MaskType {
 		}
 	}
 
-	static double[][] sobel(PrewitType type) {
+	static double[][] prewit(PrewitType type) {
 		switch(type) {
 			case horizontal:
 				return new double[][]{
