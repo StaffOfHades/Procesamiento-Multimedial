@@ -15,6 +15,7 @@ public class Interfaz extends JFrame implements ActionListener {
     Button botonInvertedThresholdOperator;
     Button botonBinaryThresholdInterval;
     Button botonInvertedBinaryThresholdOperator;
+    Button botonGrayScaleTransformation;
     Button botonGrayScaleThresholdOperator;
     Button botonInvertedGrayScaleThresholdOperator;
     Button botonStretchOperator;
@@ -68,6 +69,7 @@ public class Interfaz extends JFrame implements ActionListener {
         botonEmboss = new Button("Emboss");
         botonLowFilter = new Button("Low Filter");
         botonHighPassFilter = new Button("High Pass Filter");
+        botonGrayScaleTransformation = new Button("Gray Scale Transformation");
         botonNoiseReductionFilterAverage = new Button("Noise Reduction Filter Average");
         botonSobel = new Button("Sobel");
         botonPrewitt = new Button("Prewitt");
@@ -113,6 +115,8 @@ public class Interfaz extends JFrame implements ActionListener {
         botonLowFilter.setForeground(Color.gray);
         botonHighPassFilter.setBounds(500, 75, 200, 35);
         botonHighPassFilter.setForeground(Color.gray);
+        botonGrayScaleTransformation.setBounds(700, 75, 235, 35);
+        botonGrayScaleTransformation.setForeground(Color.gray);
         botonNoiseReductionFilterAverage.setBounds(1000, 75, 260, 35);
         botonNoiseReductionFilterAverage.setForeground(Color.gray);
         botonSobel.setBounds(10, 145, 145, 35);
@@ -135,6 +139,7 @@ public class Interfaz extends JFrame implements ActionListener {
         botonImageAddition.addActionListener(this);
         botonImageSubtraction.addActionListener(this);
         botonImageMultiplication.addActionListener(this);
+        botonGrayScaleTransformation.addActionListener(this);
         botonImageConvolution.addActionListener(this);
         botonMotionBlur.addActionListener(this);
         botonSharpen.addActionListener(this);
@@ -164,6 +169,7 @@ public class Interfaz extends JFrame implements ActionListener {
         interfaz.add(botonImageMultiplication);
         interfaz.add(botonImageConvolution);
         interfaz.add(botonMotionBlur);
+        interfaz.add(botonGrayScaleTransformation);
         interfaz.add(botonSharpen);
         interfaz.add(botonCrispen);
         interfaz.add(botonEmboss);
@@ -182,13 +188,17 @@ public class Interfaz extends JFrame implements ActionListener {
             System.err.println("No image to applay operations to");
             return;
         }
-        if (button == botonInverseOperator) {
+        if (button == botonGrayScaleTransformation) {
+            current = current.grayscaleTransformation();
+            current.showImage();
+        } else if (button == botonInverseOperator) {
             current = current.inverseOperator();
+            current.showImage();
         } else if (button == botonThresholdOperator) {
             int p = -1;
-            while (p < 0 && p > 0xff) {
+            while (p < 0 || p > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P Value) { ");
+                    String test = JOptionPane.showInputDialog("P Value: ");
                     p = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
@@ -196,9 +206,9 @@ public class Interfaz extends JFrame implements ActionListener {
             current.showImage();
         } else if (button == botonInvertedThresholdOperator) {
             int p = -1;
-            while (p < 0 && p > 0xff) {
+            while (p < 0 || p > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P Value) { ");
+                    String test = JOptionPane.showInputDialog("P Value: ");
                     p = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
@@ -206,16 +216,16 @@ public class Interfaz extends JFrame implements ActionListener {
             current.showImage();
         } else if (button == botonBinaryThresholdInterval) {
             int p1 = -1;
-            while (p1 < 0 && p1 > 0xff) {
+            while (p1 < 0 || p1 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P1 Value) { ");
+                    String test = JOptionPane.showInputDialog("P1 Value: ");
                     p1 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
             int p2 = -1;
-            while (p2 < 0 && p2 > 0xff) {
+            while (p2 < 0 || p2 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P2 Value) { ");
+                    String test = JOptionPane.showInputDialog("P2 Value: ");
                     p2 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
@@ -223,16 +233,16 @@ public class Interfaz extends JFrame implements ActionListener {
             current.showImage();
         } else if (button == botonInvertedBinaryThresholdOperator) {
             int p1 = -1;
-            while (p1 < 0 && p1 > 0xff) {
+            while (p1 < 0 || p1 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P1 Value) { ");
+                    String test = JOptionPane.showInputDialog("P1 Value: ");
                     p1 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
             int p2 = -1;
-            while (p2 < 0 && p2 > 0xff) {
+            while (p2 < 0 || p2 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P2 Value) { ");
+                    String test = JOptionPane.showInputDialog("P2 Value: ");
                     p2 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
@@ -240,16 +250,16 @@ public class Interfaz extends JFrame implements ActionListener {
             current.showImage();
         } else if (button == botonGrayScaleThresholdOperator) {
             int p1 = -1;
-            while (p1 < 0 && p1 > 0xff) {
+            while (p1 < 0 || p1 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P1 Value) { ");
+                    String test = JOptionPane.showInputDialog("P1 Value: ");
                     p1 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
             int p2 = -1;
-            while (p2 < 0 && p2 > 0xff) {
+            while (p2 < 0 || p2 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P2 Value) { ");
+                    String test = JOptionPane.showInputDialog("P2 Value: ");
                     p2 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
@@ -257,16 +267,16 @@ public class Interfaz extends JFrame implements ActionListener {
             current.showImage();
         } else if (button == botonInvertedGrayScaleThresholdOperator) {
             int p1 = -1;
-            while (p1 < 0 && p1 > 0xff) {
+            while (p1 < 0 || p1 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P1 Value) { ");
+                    String test = JOptionPane.showInputDialog("P1 Value: ");
                     p1 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
             int p2 = -1;
-            while (p2 < 0 && p2 > 0xff) {
+            while (p2 < 0 || p2 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P2 Value) { ");
+                    String test = JOptionPane.showInputDialog("P2 Value: ");
                     p2 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
@@ -274,16 +284,16 @@ public class Interfaz extends JFrame implements ActionListener {
             current.showImage();
         } else if (button == botonStretchOperator) {
             int p1 = -1;
-            while (p1 < 0 && p1 > 0xff) {
+            while (p1 < 0 || p1 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P1 Value) { ");
+                    String test = JOptionPane.showInputDialog("P1 Value: ");
                     p1 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
             int p2 = -1;
-            while (p2 < 0 && p2 > 0xff) {
+            while (p2 < 0 || p2 > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("P2 Value) { ");
+                    String test = JOptionPane.showInputDialog("P2 Value: ");
                     p2 = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
@@ -291,9 +301,9 @@ public class Interfaz extends JFrame implements ActionListener {
             current.showImage();
         } else if (button == botonGrayLevelReductionOperator) {
             int level = -1;
-            while (level < 0 && level > 0xff) {
+            while (level < 0 || level > 0xff) {
                 try {
-                    String test = JOptionPane.showInputDialog("Level Value) { ");
+                    String test = JOptionPane.showInputDialog("Level Value: ");
                     level = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
@@ -337,9 +347,9 @@ public class Interfaz extends JFrame implements ActionListener {
             current.showImage();
         } else if (button == botonNoiseReductionFilterAverage) {
             int mask = -1;
-            while (mask < 2 && mask > 0xf) {
+            while (mask < 2 || mask > 0xf) {
                 try {
-                    String test = JOptionPane.showInputDialog("Mask Size) { ");
+                    String test = JOptionPane.showInputDialog("Mask Size: ");
                     mask = Integer.parseInt(test);
                 } catch(Exception e) {}
             }
